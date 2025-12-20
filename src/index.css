@@ -461,7 +461,9 @@ address {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .site-header {
+
+    .site-header,
+    .site-header.scrolled {
         padding-top: max(32px, env(safe-area-inset-top));
         padding-bottom: 24px;
     }

@@ -1,18 +1,15 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { kv } from '../lib/kv-storage';
 
 // --- Configuration ---
-// This should point to your public "assets" bucket "config/content.json" file.
-// We'll construct it dynamically from the Supabase project URL if possible, 
-// or the user can hardcode it in .env.
-// For now, let's assume standard Supabase storage URL format:
-// https://[project-id].supabase.co/storage/v1/object/public/assets/config/content.json
-// But since we have the supabase client, we can also get the public URL from that.
-
+// "Golden Path" Setup: Hardcoded connection to the Cloud Truth.
+// This ensures that even on mobile devices with no local storage, the app fetches the latest config.
 const PROJECT_URL = import.meta.env.VITE_SUPABASE_URL;
-// Fallback to a constructed URL or empty if env is missing
-const CONTENT_JSON_URL = PROJECT_URL
+
+// We hardcode the path structure as per the user's requirements to ensure stability.
+// The user can also replace this string entirely with their specific public URL if preferred.
+const CONFIG_URL = PROJECT_URL
     ? `${PROJECT_URL}/storage/v1/object/public/assets/config/content.json`
     : '';
 
@@ -39,58 +36,67 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-    // 1. Load Content on Mount
+    // 1. Load Content on Mount (The "Truth" Fetch)
     useEffect(() => {
+        let isMounted = true;
+
         async function loadContent() {
+            if (!CONFIG_URL) {
+                console.warn("[ContentContext] VITE_SUPABASE_URL is missing. Content fetching disabled.");
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
 
-                // A. Construct URL reliably using SDK
-                const { data } = supabase.storage.from('assets').getPublicUrl('config/content.json');
-                const url = data.publicUrl;
-                console.log("[ContentContext] derived URL:", url);
-
-                // B. Load live content from Supabase Storage
-                let liveContent = {};
-                if (url) {
-                    try {
-                        const res = await fetch(`${url}?t=${Date.now()}`); // Bust cache
-                        if (res.ok) {
-                            liveContent = await res.json();
-                            console.log("[ContentContext] Live content loaded:", Object.keys(liveContent).length, "keys");
-                        } else {
-                            console.warn("[ContentContext] Content fetch failed:", res.status, res.statusText);
-                        }
-                    } catch (err) {
-                        console.error('[ContentContext] Failed to fetch live content:', err);
+                // A. Fetch Cloud Truth (Pipeline B)
+                // We fetch this FIRST to ensure we have the latest deployed content.
+                // The '?t=' params prevents aggressive browser/CDN caching.
+                let cloudContent = {};
+                try {
+                    const res = await fetch(`${CONFIG_URL}?t=${Date.now()}`);
+                    if (res.ok) {
+                        cloudContent = await res.json();
+                        console.log("[ContentContext] Cloud 'Truth' loaded successfully.");
+                    } else {
+                        // This is expected if the file doesn't exist yet (first run)
+                        console.log("[ContentContext] Content file not found (404). Using defaults.");
                     }
+                } catch (err) {
+                    console.error("[ContentContext] Failed to fetch cloud content:", err);
                 }
 
-                // C. Load local draft
-                const localDraft = await kv.get<ContentMap>('content_draft');
-                if (localDraft) console.log("[ContentContext] Local draft found");
+                if (!isMounted) return;
 
-                // D. Merge/Decide
+                // B. Check Local Draft (The "Editor" State)
+                // If we are in "Admin mode" (conceptually), we might have unsaved local changes.
+                const localDraft = await kv.get<ContentMap>('content_draft');
+
+                // C. Merge Strategy
+                // If there is a local draft, it overrides Cloud Truth (until published or discarded).
                 if (localDraft) {
-                    setContent({ ...liveContent, ...localDraft });
+                    console.log("[ContentContext] Local draft found. Overriding cloud content.");
+                    setContent({ ...cloudContent, ...localDraft });
                     setHasUnsavedChanges(true);
                 } else {
-                    setContent(liveContent);
+                    setContent(cloudContent);
                 }
 
             } catch (err) {
-                console.error('[ContentContext] Error loading content:', err);
+                console.error('[ContentContext] Critical error loading content:', err);
             } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         }
 
         loadContent();
+
+        return () => { isMounted = false; };
     }, []);
 
     // 2. Get Helper
     const getContent = (key: string, defaultValue?: any) => {
-        // fast look up for 'foo.bar.baz' strings
         const keys = key.split('.');
         let result: any = content;
         for (const k of keys) {
@@ -122,30 +128,19 @@ export function ContentProvider({ children }: { children: ReactNode }) {
             return next;
         });
         setHasUnsavedChanges(true);
-        // Auto-save to local draft (debounce could be good here, but direct is fine for now)
-        saveDraftToLocal(key, value); // We can just dump the whole state
     };
 
-    const saveDraftToLocal = async (triggerKey?: string, triggerValue?: any) => {
-        // We need the *latest* content, but setContent is async.
-        // So we usually rely on a useEffect to save draft when content changes,
-        // OR just save the updated object we calculated.
-        // For simplicity, let's use a standard debounce in a useEffect, 
-        // but here we just trigger a flag/promise.
-    };
-
-    // Effect to sync to IndexedDB
+    // Effect: Auto-save Draft to Local Storage
     useEffect(() => {
         if (Object.keys(content).length > 0 && hasUnsavedChanges) {
             const timer = setTimeout(() => {
                 kv.set('content_draft', content).then(() => {
                     setLastSaved(new Date());
                 });
-            }, 1000); // 1s autosave debounce
+            }, 500); // 500ms debounce
             return () => clearTimeout(timer);
         }
     }, [content, hasUnsavedChanges]);
-
 
     // 4. Upload Helper
     const uploadImage = async (file: File, pathPrefix = 'marketing'): Promise<string> => {
@@ -153,18 +148,22 @@ export function ContentProvider({ children }: { children: ReactNode }) {
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-        const filePath = `${pathPrefix}/${fileName}`;
+        // Clean filename to be safe
+        const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
+        const filePath = `${pathPrefix}/${cleanFileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from('assets')
-            .upload(filePath, file);
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
 
         if (uploadError) {
-            console.error("Upload error details:", uploadError);
-            throw new Error(uploadError.message || "Unknown upload error");
+            console.error("Upload error:", uploadError);
+            throw new Error(uploadError.message || "Upload failed");
         }
 
-        // Get Public URL
         const { data } = supabase.storage
             .from('assets')
             .getPublicUrl(filePath);
@@ -172,42 +171,44 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         return data.publicUrl;
     };
 
-    // 5. Publish Helper (Save to Supabase JSON)
+    // 5. Publish Helper (Make it "Live")
     const publishLive = async () => {
         try {
-            // Upload content as JSON
+            // This is Pipeline B: Update content.json in Supabase
             const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
             const file = new File([blob], 'content.json', { type: 'application/json' });
 
             const { error } = await supabase.storage
                 .from('assets')
-                .upload('config/content.json', file, { upsert: true });
+                .upload('config/content.json', file, {
+                    upsert: true,
+                    contentType: 'application/json',
+                    cacheControl: '0' // Prevent caching of the config file itself
+                });
 
             if (error) throw error;
 
-            // Clear local draft since it's now live
+            // Clear local draft since it matches live now
             await kv.set('content_draft', null);
             setHasUnsavedChanges(false);
             setLastSaved(new Date());
-            alert('Published successfully! Changes should be live momentarily.');
+            alert('Published successfully! Changes are now live on all devices.');
 
         } catch (err: any) {
             console.error('Failed to publish:', err);
-            const msg = err.message || JSON.stringify(err);
-            alert(`Failed to publish changes: ${msg}`);
+            alert(`Failed to publish: ${err.message}`);
         }
     };
 
     // 6. Discard Draft
     const discardDraft = async () => {
-        if (confirm('Are you sure you want to discard your unsaved changes? This will revert to the live website version.')) {
+        if (confirm('Are you sure? This will revert your local editor to the currently live version.')) {
             await kv.set('content_draft', null);
-            window.location.reload(); // Easiest way to re-fetch clean state
+            window.location.reload();
         }
     }
 
     const saveDraft = async () => {
-        // Manual trigger for local save if needed
         await kv.set('content_draft', content);
         setLastSaved(new Date());
     };

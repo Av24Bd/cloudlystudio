@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { useContent } from '../contexts/ContentContext';
 
 export default function Home() {

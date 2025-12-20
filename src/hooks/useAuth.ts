@@ -27,7 +27,7 @@ export function useAuth() {
         return () => subscription.unsubscribe();
     }, []);
 
-    const signIn = async (email: string) => {
+    const signIn = async (_email: string) => {
         // For admin, we usually want email+password, but for simplicity let's stick to standard auth
         // The user mentioned "Enable Email/Password provider"
         // This function can be expanded if we need custom login logic, 

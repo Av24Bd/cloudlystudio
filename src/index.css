@@ -461,6 +461,11 @@ address {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .site-header {
+        padding-top: max(32px, env(safe-area-inset-top));
+        padding-bottom: 24px;
+    }
+
     .header-container {
         flex-direction: column;
         gap: 16px;

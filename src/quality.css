@@ -1,0 +1,101 @@
+/* Quality Section */
+.quality-section {
+    background-color: #F5F5F7;
+    /* Light grey technical background */
+    border-top: 1px solid #e5e5e5;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.quality-header {
+    margin-bottom: 60px;
+    max-width: 800px;
+}
+
+.quality-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+}
+
+.quality-card {
+    background: white;
+    padding: 32px;
+    border: 1px solid #e5e5e5;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quality-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border-color: black;
+}
+
+.gate-marker {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 16px;
+}
+
+.gate-number {
+    font-family: monospace;
+    /* Technical feel */
+    font-size: 1.25rem;
+    color: #999;
+    font-weight: 600;
+}
+
+.gate-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #00A651;
+    /* Success Green */
+    background: #E8F5E9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+.quality-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: black;
+}
+
+.quality-card p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 0;
+}
+
+/* Connect the cards visually on desktop */
+.quality-card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: black;
+    transition: width 0.3s ease;
+}
+
+.quality-card:hover::before {
+    width: 100%;
+}
+
+@media (max-width: 1024px) {
+    .quality-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .quality-card {
+        padding: 24px;
+    }
+}

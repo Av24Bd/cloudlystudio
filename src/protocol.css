@@ -1,0 +1,62 @@
+/* Protocol Section */
+.protocol-section {
+    background-color: white;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.protocol-header {
+    margin-bottom: 60px;
+    max-width: 900px;
+}
+
+.protocol-top-line {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+}
+
+.protocol-card {
+    border-top: 1px solid black;
+    padding-top: 24px;
+    position: relative;
+    padding-right: 24px;
+}
+
+.protocol-number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: black;
+    margin-bottom: 16px;
+    display: block;
+    font-family: monospace;
+}
+
+.protocol-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: black;
+    line-height: 1.2;
+}
+
+.protocol-card p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 0;
+}
+
+@media (max-width: 1024px) {
+    .protocol-top-line {
+        grid-template-columns: 1fr;
+        gap: 48px;
+        border-top: none;
+        padding-top: 0;
+    }
+
+    .protocol-card {
+        border-top: 1px solid #e5e5e5;
+        padding-top: 24px;
+        padding-right: 0;
+    }
+}

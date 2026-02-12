@@ -209,7 +209,7 @@ export default function Home() {
                 <section className="audience-section section-padding">
                     <div className="container">
                         <div className="audience-grid">
-                            <h3 className="audience-label">Target audience</h3>
+                            <h3 className="audience-label">WHO THIS IS FOR</h3>
                             <div className="audience-text">
                                 <p className="lead-white">Engineering-led brands shipping complex products.</p>
                                 <p className="desc-white">Lab, industrial, medical, and premium hardware teams with growing catalogs, multiplying variants, and marketing blocked by sample logistics.</p>

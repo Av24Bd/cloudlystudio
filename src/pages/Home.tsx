@@ -184,7 +184,7 @@ export default function Home() {
                 <section className="technology section-padding" id="process">
                     <div className="container">
                         <h2 className="section-title">The 3-step start</h2>
-                        <div className="steps-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                        <div className="steps-grid">
                             <div className="step">
                                 <span className="step-label">01 Alignment</span>
                                 <p>We review inputs, confirm scope, and lock output specs. Any missing details are flagged upfront - one source of truth, zero ambiguity.</p>

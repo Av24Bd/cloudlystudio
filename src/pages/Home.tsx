@@ -187,7 +187,7 @@ export default function Home() {
                         <div className="steps-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                             <div className="step">
                                 <span className="step-label">01 Alignment</span>
-                                <p>We review inputs, define scope, confirm output specs, and open the first stopper list. Zero ambiguity.</p>
+                                <p>We review inputs, confirm scope, and lock output specs. Any missing details are flagged upfront - one source of truth, zero ambiguity.</p>
                             </div>
                             <div className="step">
                                 <span className="step-label">02 Pilot</span>

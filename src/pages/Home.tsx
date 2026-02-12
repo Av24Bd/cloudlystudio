@@ -38,7 +38,7 @@ export default function Home() {
                                 <a href="#contact" className="primary-btn">Request a pilot</a>
                             </div>
                             <div className="hero-visual">
-                                <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Hero%20Image%20Top.jpeg" alt="Industrial Visualization" />
+                                <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Hero%20Image%20Top1.png" alt="Industrial Visualization" />
                             </div>
                         </div>
                     </div>

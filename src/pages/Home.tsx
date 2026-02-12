@@ -1,8 +1,8 @@
-import { useContent } from '../contexts/ContentContext';
+// import { useContent } from '../contexts/ContentContext';
 
 export default function Home() {
     // keeping the hook for potential future use or to avoid removing imports if other things depend on it (unlikely here)
-    const { getContent } = useContent();
+    // const { getContent } = useContent();
 
     return (
         <>
@@ -25,7 +25,7 @@ export default function Home() {
                 {/* HERO SECTION */}
                 <section className="hero">
                     <div className="hero-bg">
-                        <img src="/assets/hero-industrial.png" alt="Industrial Visualization" />
+                        <img src="/assets/hero-swiss.png" alt="Industrial Visualization" />
                     </div>
                     <div className="container hero-content">
                         <h1>Production-grade 3D visualization at catalog scale.</h1>

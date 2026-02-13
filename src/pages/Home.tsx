@@ -1,7 +1,7 @@
 import { trackEvent } from '../lib/analytics';
 // import { useContent } from '../contexts/ContentContext';
 
-const optimizeImage = (url: string, width: number = 800) => {
+const optimizeImage = (url: string, _width: number = 800) => {
     // Reverting optimizations as the render/image endpoint appears to be disabled/broken on this project
     return url;
 };

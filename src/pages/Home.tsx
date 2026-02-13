@@ -2,11 +2,8 @@ import { trackEvent } from '../lib/analytics';
 // import { useContent } from '../contexts/ContentContext';
 
 const optimizeImage = (url: string, width: number = 800) => {
-    if (!url.includes('supabase.co')) return url;
-    // Switch to the /render/image/public/ endpoint for transformations
-    // This assumes Supabase Image Transformations are enabled on the project (default for most)
-    let newUrl = url.replace('/object/public/', '/render/image/public/');
-    return `${newUrl}?width=${width}&resize=contain&format=webp&quality=80`;
+    // Reverting optimizations as the render/image endpoint appears to be disabled/broken on this project
+    return url;
 };
 
 export default function Home() {

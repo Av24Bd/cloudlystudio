@@ -1,3 +1,4 @@
+import { trackEvent } from '../lib/analytics';
 // import { useContent } from '../contexts/ContentContext';
 
 export default function Home() {
@@ -11,11 +12,11 @@ export default function Home() {
                     <a href="#" className="logo">Cloudly Studi<span style={{ color: '#0052FF' }}>o</span></a>
                     <nav className="main-nav">
                         <ul>
-                            <li><a href="#work">Work</a></li>
-                            <li><a href="#how-it-works">How it works</a></li>
-                            <li><a href="#deliverables">Deliverables</a></li>
-                            <li><a href="#process">Process</a></li>
-                            <li><a href="#contact" className="cta-button">Request a pilot</a></li>
+                            <li><a href="#work" onClick={() => trackEvent('click_nav', { category: 'navigation', label: 'work' })}>Work</a></li>
+                            <li><a href="#how-it-works" onClick={() => trackEvent('click_nav', { category: 'navigation', label: 'how_it_works' })}>How it works</a></li>
+                            <li><a href="#deliverables" onClick={() => trackEvent('click_nav', { category: 'navigation', label: 'deliverables' })}>Deliverables</a></li>
+                            <li><a href="#process" onClick={() => trackEvent('click_nav', { category: 'navigation', label: 'process' })}>Process</a></li>
+                            <li><a href="#contact" className="cta-button" onClick={() => trackEvent('click_cta', { category: 'navigation', label: 'request_pilot' })}>Request a pilot</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -35,7 +36,13 @@ export default function Home() {
                                 <p className="hero-sub">
                                     We turn engineering CAD, technical drawings, and reference images into launch-ready visuals, without shipping samples or slowing R&D.
                                 </p>
-                                <a href="#contact" className="primary-btn">Request a pilot</a>
+                                <a
+                                    href="#contact"
+                                    className="primary-btn"
+                                    onClick={() => trackEvent('click_cta', { category: 'hero', label: 'request_pilot' })}
+                                >
+                                    Request a pilot
+                                </a>
                             </div>
                             <div className="hero-visual">
                                 <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Hero%20Image%20Top1.png" alt="Industrial Visualization" />
@@ -200,7 +207,13 @@ export default function Home() {
                         </div>
                         <div style={{ marginTop: '3rem', textAlign: 'center' }}>
                             <p style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Validate quality first. Scale with confidence.</p>
-                            <a href="#contact" className="primary-btn">Start your pilot</a>
+                            <a
+                                href="#contact"
+                                className="primary-btn"
+                                onClick={() => trackEvent('click_cta', { category: 'process', label: 'start_pilot' })}
+                            >
+                                Start your pilot
+                            </a>
                         </div>
                     </div>
                 </section>
@@ -265,7 +278,13 @@ export default function Home() {
                     <div className="container footer-content">
                         <div className="contact-info">
                             <h2>Contact</h2>
-                            <a href="mailto:hello@cloudly.studio" className="email-link">hello@cloudly.studio</a>
+                            <a
+                                href="mailto:hello@cloudly.studio"
+                                className="email-link"
+                                onClick={() => trackEvent('click_contact', { category: 'footer', label: 'email' })}
+                            >
+                                hello@cloudly.studio
+                            </a>
                             <address>
                                 CLOUDLY STUDIO sp. z o.o.<br />
                                 Ul. Żelazna 51/53<br />
@@ -274,7 +293,14 @@ export default function Home() {
                         </div>
                         <div className="footer-links">
                             <h3>Links</h3>
-                            <a href="https://www.linkedin.com/company/cloudly-studio/" target="_blank" rel="noopener noreferrer">LinkedIn: Cloudly Studio</a>
+                            <a
+                                href="https://www.linkedin.com/company/cloudly-studio/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => trackEvent('click_social', { category: 'footer', label: 'linkedin' })}
+                            >
+                                LinkedIn: Cloudly Studio
+                            </a>
                         </div>
                     </div>
                     <div className="container text-center copyright">

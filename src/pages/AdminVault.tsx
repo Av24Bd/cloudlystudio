@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useContent } from '../contexts/ContentContext';
-import { ChevronDown, ChevronRight, Upload, Save, Eye, Loader2, LogOut, FileImage, Type } from 'lucide-react';
+import { ChevronDown, ChevronRight, Upload, Save, Eye, Loader2, LogOut, FileImage, Type, BarChart2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 // --- Components ---
 
@@ -268,6 +269,7 @@ export default function AdminVault() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loggingIn, setLoggingIn] = useState(false);
+    const [activeTab, setActiveTab] = useState<'editor' | 'analytics'>('editor');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -399,15 +401,25 @@ export default function AdminVault() {
                                 </div>
                             </div>
                             <nav className="space-y-2">
-                                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl bg-white text-black shadow-lg shadow-white/5 transition-all">
+                                <button
+                                    onClick={() => setActiveTab('editor')}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'editor' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-600 hover:bg-white/5 hover:text-white'}`}
+                                >
                                     <Type className="w-4 h-4" />
                                     Site Editor
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('analytics')}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'analytics' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-600 hover:bg-white/5 hover:text-white'}`}
+                                >
+                                    <BarChart2 className="w-4 h-4" />
+                                    Traffic Intelligence
                                 </button>
                                 <Link to="/" className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white transition-all group">
                                     <Eye className="w-4 h-4 group-hover:text-white transition-colors" />
                                     View Live Site
                                 </Link>
-                                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-zinc-600 cursor-not-allowed">
+                                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-zinc-600 cursor-not-allowed hidden">
                                     <FileImage className="w-4 h-4" />
                                     Media Library (Soon)
                                 </button>
@@ -425,11 +437,15 @@ export default function AdminVault() {
                     {/* Main Content Area */}
                     <main className="flex-1 min-w-0">
                         <div className="mb-10 pb-6 border-b border-white/5">
-                            <h2 className="text-3xl font-light text-white mb-2">Site Configuration</h2>
-                            <p className="text-zinc-500">Manage your landing page content and assets.</p>
+                            <h2 className="text-3xl font-light text-white mb-2">
+                                {activeTab === 'editor' ? 'Site Configuration' : 'Traffic Intelligence'}
+                            </h2>
+                            <p className="text-zinc-500">
+                                {activeTab === 'editor' ? 'Manage your landing page content and assets.' : 'Live visitor tracking and company identification.'}
+                            </p>
                         </div>
                         <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-                            <SiteEditor />
+                            {activeTab === 'editor' ? <SiteEditor /> : <AnalyticsDashboard />}
                         </div>
                     </main>
                 </div>

@@ -347,7 +347,7 @@ export default function AnalyticsDashboard() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2 text-sm text-zinc-300">
+                                                        <div className="flex items-center gap-2 text-sm text-zinc-300" title={`Raw Referrer: ${visitor.referrer || '(none)'}`}>
                                                             <Link className="w-3 h-3 text-zinc-400" />
                                                             <span className={`truncate max-w-[150px] ${source.type === 'direct' ? 'text-zinc-400 italic' : 'text-zinc-200 font-medium'}`}>
                                                                 {source.name}
@@ -359,6 +359,12 @@ export default function AnalyticsDashboard() {
                                                                 <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wide bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/20">
                                                                     {source.keyphrase}
                                                                 </span>
+                                                            </div>
+                                                        )}
+                                                        {/* Debug: Show referrer if present but not classified (or if it is direct but has a value) */}
+                                                        {visitor.referrer && source.type === 'direct' && (
+                                                            <div className="ml-5 text-[10px] text-zinc-600 font-mono truncate max-w-[150px]">
+                                                                {new URL(visitor.referrer).hostname.replace('www.', '')}
                                                             </div>
                                                         )}
                                                     </div>

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, RefreshCw, Activity, MapPin, Building2, Globe, Clock, ArrowUpRight, User, Edit3 } from 'lucide-react';
+import { Loader2, RefreshCw, Activity, MapPin, Building2, Globe, Clock, ArrowUpRight, User, Edit3, Filter, X } from 'lucide-react';
 
 interface Visitor {
     id: string;
@@ -28,6 +28,7 @@ export default function AnalyticsDashboard() {
     const [identities, setIdentities] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [activeFilter, setActiveFilter] = useState<{ type: 'city' | 'org' | 'path', value: string } | null>(null);
 
     const fetchIdentities = async () => {
         try {
@@ -46,7 +47,6 @@ export default function AnalyticsDashboard() {
         if (label === null) return; // Cancelled
 
         if (label.trim() === '') {
-            // If empty, maybe delete? For now just return.
             return;
         }
 
@@ -58,7 +58,7 @@ export default function AnalyticsDashboard() {
             alert('Error saving label: ' + error.message);
         } else {
             setIdentities(prev => ({ ...prev, [ip]: label.trim() }));
-            fetchVisitors(); // Refresh to ensure consistency if needed, though local state update should be enough
+            // No need to refetch visitors, local update covers it
         }
     };
 
@@ -70,7 +70,7 @@ export default function AnalyticsDashboard() {
                 .from('visitors')
                 .select('*')
                 .order('timestamp', { ascending: false })
-                .limit(100);
+                .limit(500); // Fetch more rows for better aggregations
 
             if (error) throw error;
             setVisitors(data || []);
@@ -93,7 +93,7 @@ export default function AnalyticsDashboard() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'visitors' },
                 (payload) => {
-                    setVisitors((prev) => [payload.new as Visitor, ...prev].slice(0, 100));
+                    setVisitors((prev) => [payload.new as Visitor, ...prev].slice(0, 500));
                 }
             )
             .subscribe();
@@ -102,6 +102,48 @@ export default function AnalyticsDashboard() {
             subscription.unsubscribe();
         };
     }, []);
+
+    // --- Aggregation Logic ---
+    const stats = useMemo(() => {
+        const cityCounts: Record<string, number> = {};
+        const orgCounts: Record<string, number> = {};
+        const pageCounts: Record<string, number> = {};
+
+        visitors.forEach(v => {
+            // City
+            const location = v.city ? `${v.city}, ${v.country}` : 'Unknown Location';
+            cityCounts[location] = (cityCounts[location] || 0) + 1;
+
+            // Org
+            // Use identity if available, otherwise org
+            const label = identities[v.ip_address] || (v.org === 'unknown' ? 'Anonymous / ISP' : v.org);
+            orgCounts[label] = (orgCounts[label] || 0) + 1;
+
+            // Page
+            pageCounts[v.path] = (pageCounts[v.path] || 0) + 1;
+        });
+
+        return {
+            topCities: Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
+            // For orgs, show more (up to 7) to be "granular"
+            topOrgs: Object.entries(orgCounts).sort((a, b) => b[1] - a[1]).slice(0, 7),
+            topPages: Object.entries(pageCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
+        };
+    }, [visitors, identities]);
+
+    const filteredVisitors = useMemo(() => {
+        if (!activeFilter) return visitors;
+        return visitors.filter(v => {
+            if (activeFilter.type === 'city') return (v.city ? `${v.city}, ${v.country}` : 'Unknown Location') === activeFilter.value;
+            if (activeFilter.type === 'org') {
+                const label = identities[v.ip_address] || (v.org === 'unknown' ? 'Anonymous / ISP' : v.org);
+                return label === activeFilter.value;
+            }
+            if (activeFilter.type === 'path') return v.path === activeFilter.value;
+            return true;
+        });
+    }, [visitors, activeFilter, identities]);
+
 
     return (
         <div className="space-y-8 max-w-7xl">
@@ -118,7 +160,7 @@ export default function AnalyticsDashboard() {
                     <span className="text-xs text-zinc-500 hidden md:block">Real-time visitor tracking enabled</span>
                 </div>
                 <button
-                    onClick={() => { fetchVisitors(); fetchIdentities(); }}
+                    onClick={() => { fetchVisitors(); fetchIdentities(); setActiveFilter(null); }}
                     className="group flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg transition-all border border-white/5 hover:border-white/10 shadow-lg"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
@@ -139,21 +181,32 @@ export default function AnalyticsDashboard() {
                 {/* Live Feed Panel */}
                 <div className="lg:col-span-3 bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                     <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-                        <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-indigo-400" />
-                            Incoming Signals
-                        </h3>
-                        <span className="text-xs text-zinc-500 font-mono bg-black/40 px-2 py-1 rounded">LAST 100 VISITORS</span>
+                        <div className="flex items-center gap-4">
+                            <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                                <Globe className="w-4 h-4 text-indigo-400" />
+                                Incoming Signals
+                            </h3>
+                            {activeFilter && (
+                                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 text-xs font-medium animate-in fade-in slide-in-from-left-4">
+                                    <Filter className="w-3 h-3" />
+                                    Filtered by {activeFilter.type}: {activeFilter.value}
+                                    <button onClick={() => setActiveFilter(null)} className="ml-1 hover:text-white"><X className="w-3 h-3" /></button>
+                                </div>
+                            )}
+                        </div>
+                        <span className="text-xs text-zinc-500 font-mono bg-black/40 px-2 py-1 rounded">
+                            SHOWING {filteredVisitors.length} RECORDS
+                        </span>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto max-h-[500px] overflow-y-auto custom-scrollbar">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-black/40 text-zinc-400 uppercase text-[10px] tracking-widest font-bold">
+                            <thead className="sticky top-0 bg-zinc-900 z-10 text-zinc-300 uppercase text-[10px] tracking-widest font-bold shadow-sm border-b border-white/10">
                                 <tr>
-                                    <th className="px-6 py-4">Time (UTC)</th>
-                                    <th className="px-6 py-4">Location</th>
-                                    <th className="px-6 py-4">Identity / Network</th>
-                                    <th className="px-6 py-4 text-right">Page View</th>
+                                    <th className="px-6 py-4 bg-zinc-900">Time (UTC)</th>
+                                    <th className="px-6 py-4 bg-zinc-900">Location</th>
+                                    <th className="px-6 py-4 bg-zinc-900">Identity / Network</th>
+                                    <th className="px-6 py-4 text-right bg-zinc-900">Page View</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -166,14 +219,14 @@ export default function AnalyticsDashboard() {
                                             </div>
                                         </td>
                                     </tr>
-                                ) : visitors.length === 0 ? (
+                                ) : filteredVisitors.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="p-24 text-center text-zinc-500">
-                                            No signal detected recently.
+                                            No signals match current filter.
                                         </td>
                                     </tr>
                                 ) : (
-                                    visitors.map((visitor) => (
+                                    filteredVisitors.map((visitor) => (
                                         <tr key={visitor.id} className="group hover:bg-white/[0.03] transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
@@ -182,7 +235,7 @@ export default function AnalyticsDashboard() {
                                                     </div>
                                                     <div>
                                                         <div className="text-white font-mono font-medium text-xs">{formatTime(visitor.timestamp)}</div>
-                                                        <div className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">{formatDate(visitor.timestamp)}</div>
+                                                        <div className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5 max-w-[80px] truncate">{formatDate(visitor.timestamp)}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -253,34 +306,91 @@ export default function AnalyticsDashboard() {
                     </div>
                 </div>
 
-                {/* Insight Card 1 */}
-                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 relative overflow-hidden group shadow-lg flex flex-col items-center text-center justify-center min-h-[200px]">
-                    <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4 text-zinc-400">
-                        <MapPin className="w-6 h-6" />
+                {/* Insight Card: Top Regions */}
+                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col h-full hover:border-white/20 transition-colors">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                            <MapPin className="w-5 h-5 text-indigo-400" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-medium">Top Regions</h4>
+                            <p className="text-xs text-zinc-500">Most active locations</p>
+                        </div>
                     </div>
-                    <h4 className="text-white font-medium mb-1">Top Active Regions</h4>
-                    <p className="text-sm text-zinc-500">Live heatmap generation in progress...</p>
+                    <div className="space-y-1">
+                        {stats.topCities.length > 0 ? stats.topCities.map(([location, count]) => (
+                            <div
+                                key={location}
+                                onClick={() => setActiveFilter({ type: 'city', value: location })}
+                                className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                            >
+                                <span className="text-sm text-zinc-300 group-hover:text-white truncate max-w-[200px]">{location}</span>
+                                <span className="text-xs font-mono font-medium text-zinc-500 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
+                                    {count}
+                                </span>
+                            </div>
+                        )) : (
+                            <p className="text-sm text-zinc-600 p-4 text-center italic">Not enough data to cluster.</p>
+                        )}
+                    </div>
                 </div>
 
-                {/* Insight Card 2 */}
-                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 relative overflow-hidden group shadow-lg flex flex-col items-center text-center justify-center min-h-[200px]">
-                    <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4 text-zinc-400">
-                        <Building2 className="w-6 h-6" />
+                {/* Insight Card: Top Companies */}
+                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col h-full hover:border-white/20 transition-colors">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                            <Building2 className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-medium">Top Entities</h4>
+                            <p className="text-xs text-zinc-500">Most active networks/users</p>
+                        </div>
                     </div>
-                    <h4 className="text-white font-medium mb-1">Company Identification</h4>
-                    <p className="text-sm text-zinc-500">Categorizing incoming business traffic...</p>
+                    <div className="space-y-1">
+                        {stats.topOrgs.length > 0 ? stats.topOrgs.map(([org, count]) => (
+                            <div
+                                key={org}
+                                onClick={() => setActiveFilter({ type: 'org', value: org })}
+                                className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                            >
+                                <span className="text-sm text-zinc-300 group-hover:text-white truncate max-w-[200px]">{org}</span>
+                                <span className="text-xs font-mono font-medium text-zinc-500 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
+                                    {count}
+                                </span>
+                            </div>
+                        )) : (
+                            <p className="text-sm text-zinc-600 p-4 text-center italic">Not enough data to cluster.</p>
+                        )}
+                    </div>
                 </div>
 
-                {/* Insight Card 3 */}
-                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 relative overflow-hidden group shadow-lg flex flex-col items-center text-center justify-center min-h-[200px]">
-                    <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4 text-zinc-400">
-                        <Activity className="w-6 h-6" />
+                {/* Insight Card: Top Pages */}
+                <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col h-full hover:border-white/20 transition-colors">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                            <Activity className="w-5 h-5 text-orange-400" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-medium">Engagement</h4>
+                            <p className="text-xs text-zinc-500">Most visited paths</p>
+                        </div>
                     </div>
-                    <h4 className="text-white font-medium mb-1">Engagement Metrics</h4>
-                    <p className="text-sm text-zinc-500">Calculating session duration...</p>
+                    <div className="space-y-1">
+                        {stats.topPages.length > 0 ? stats.topPages.map(([page, count]) => (
+                            <div
+                                key={page}
+                                onClick={() => setActiveFilter({ type: 'path', value: page })}
+                                className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                            >
+                                <span className="text-sm font-mono text-zinc-300 group-hover:text-white truncate max-w-[200px]">{page}</span>
+                                <span className="text-xs font-mono font-medium text-zinc-500 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
+                                    {count}
+                                </span>
+                            </div>
+                        )) : (
+                            <p className="text-sm text-zinc-600 p-4 text-center italic">Not enough data to cluster.</p>
+                        )}
+                    </div>
                 </div>
 
             </div>

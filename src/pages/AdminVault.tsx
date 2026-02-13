@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useContent } from '../contexts/ContentContext';
-import { ChevronDown, ChevronRight, Upload, Save, Eye, Loader2, LogOut, FileImage, Type, BarChart2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Upload, Save, Eye, Loader2, LogOut, FileImage, Type, BarChart2, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
+import UTMBuilder from '../components/UTMBuilder';
 
 // --- Components ---
 
@@ -108,7 +109,7 @@ const ContentField = ({ label, contentKey, type = 'text', defaultValue = '', hel
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold bg-white/5 px-2 py-1 rounded">Smart Upload</span>
-                                <p className="text-xs text-zinc-600">Drop file anywhere on field or click icon</p>
+                                <p className="text-xs text-zinc-500">Drop file anywhere on field or click icon</p>
                             </div>
                         </div>
                     </div>
@@ -121,7 +122,7 @@ const ContentField = ({ label, contentKey, type = 'text', defaultValue = '', hel
                     className="w-full bg-zinc-900/50 border border-white/5 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all shadow-inner"
                 />
             )}
-            {helperText && <p className="text-xs text-gray-600">{helperText}</p>}
+            {helperText && <p className="text-xs text-zinc-500">{helperText}</p>}
         </div>
     );
 };
@@ -269,7 +270,7 @@ export default function AdminVault() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loggingIn, setLoggingIn] = useState(false);
-    const [activeTab, setActiveTab] = useState<'editor' | 'analytics'>('editor');
+    const [activeTab, setActiveTab] = useState<'editor' | 'analytics' | 'links'>('editor');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -403,17 +404,24 @@ export default function AdminVault() {
                             <nav className="space-y-2">
                                 <button
                                     onClick={() => setActiveTab('editor')}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'editor' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-600 hover:bg-white/5 hover:text-white'}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'editor' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                                 >
                                     <Type className="w-4 h-4" />
                                     Site Editor
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('analytics')}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'analytics' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-600 hover:bg-white/5 hover:text-white'}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'analytics' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                                 >
                                     <BarChart2 className="w-4 h-4" />
                                     Traffic Intelligence
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('links')}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'links' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                >
+                                    <LinkIcon className="w-4 h-4" />
+                                    Campaign Links
                                 </button>
                                 <Link to="/" className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white transition-all group">
                                     <Eye className="w-4 h-4 group-hover:text-white transition-colors" />
@@ -438,14 +446,20 @@ export default function AdminVault() {
                     <main className="flex-1 min-w-0">
                         <div className="mb-10 pb-6 border-b border-white/5">
                             <h2 className="text-3xl font-light text-white mb-2">
-                                {activeTab === 'editor' ? 'Site Configuration' : 'Traffic Intelligence'}
+                                {activeTab === 'editor' && 'Site Configuration'}
+                                {activeTab === 'analytics' && 'Traffic Intelligence'}
+                                {activeTab === 'links' && 'Campaign Manager'}
                             </h2>
                             <p className="text-zinc-500">
-                                {activeTab === 'editor' ? 'Manage your landing page content and assets.' : 'Live visitor tracking and company identification.'}
+                                {activeTab === 'editor' && 'Manage your landing page content and assets.'}
+                                {activeTab === 'analytics' && 'Live visitor tracking and company identification.'}
+                                {activeTab === 'links' && 'Create and track UTM links for your marketing campaigns.'}
                             </p>
                         </div>
                         <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-                            {activeTab === 'editor' ? <SiteEditor /> : <AnalyticsDashboard />}
+                            {activeTab === 'editor' && <SiteEditor />}
+                            {activeTab === 'analytics' && <AnalyticsDashboard />}
+                            {activeTab === 'links' && <UTMBuilder />}
                         </div>
                     </main>
                 </div>

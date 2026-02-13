@@ -326,7 +326,7 @@ export default function AnalyticsDashboard() {
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-2 text-sm text-zinc-300">
                                                         <Link className="w-3 h-3 text-zinc-500" />
-                                                        <span className={`truncate max-w-[150px] ${source.type === 'direct' ? 'text-zinc-500 italic' : 'text-white font-medium'}`}>
+                                                        <span className={`truncate max-w-[150px] ${source.type === 'direct' ? 'text-zinc-400 italic' : 'text-white font-medium'}`}>
                                                             {source.name}
                                                         </span>
                                                     </div>
@@ -365,7 +365,7 @@ export default function AnalyticsDashboard() {
                                 className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
                             >
                                 <span className="text-sm text-zinc-300 group-hover:text-white truncate max-w-[200px]">{location}</span>
-                                <span className="text-xs font-mono font-medium text-zinc-500 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
+                                <span className="text-xs font-mono font-medium text-zinc-400 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
                                     {count}
                                 </span>
                             </div>
@@ -394,7 +394,7 @@ export default function AnalyticsDashboard() {
                                 className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
                             >
                                 <span className="text-sm text-zinc-300 group-hover:text-white truncate max-w-[200px]">{org}</span>
-                                <span className="text-xs font-mono font-medium text-zinc-500 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
+                                <span className="text-xs font-mono font-medium text-zinc-400 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
                                     {count}
                                 </span>
                             </div>
@@ -423,7 +423,7 @@ export default function AnalyticsDashboard() {
                                 className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
                             >
                                 <span className="text-sm font-mono text-zinc-300 group-hover:text-white truncate max-w-[200px]">{source}</span>
-                                <span className="text-xs font-mono font-medium text-zinc-500 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
+                                <span className="text-xs font-mono font-medium text-zinc-400 bg-black/40 px-2 py-0.5 rounded group-hover:bg-white/10 group-hover:text-white transition-colors">
                                     {count}
                                 </span>
                             </div>

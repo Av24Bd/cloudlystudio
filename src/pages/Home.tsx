@@ -1,6 +1,14 @@
 import { trackEvent } from '../lib/analytics';
 // import { useContent } from '../contexts/ContentContext';
 
+const optimizeImage = (url: string, width: number = 800) => {
+    if (!url.includes('supabase.co')) return url;
+    // Switch to the /render/image/public/ endpoint for transformations
+    // This assumes Supabase Image Transformations are enabled on the project (default for most)
+    let newUrl = url.replace('/object/public/', '/render/image/public/');
+    return `${newUrl}?width=${width}&resize=contain&format=webp&quality=80`;
+};
+
 export default function Home() {
     // keeping the hook for potential future use or to avoid removing imports if other things depend on it (unlikely here)
     // const { getContent } = useContent();
@@ -45,7 +53,20 @@ export default function Home() {
                                 </a>
                             </div>
                             <div className="hero-visual">
-                                <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Hero%20Image%20Top1.png" alt="Industrial Visualization" />
+                                {/* Use optimizeImage with a larger width for the hero */}
+                                {/* fetchPriority="high" (Note: React uses camelCase, but standard HTML attribute is fetchpriority. 
+                                    React 18.3+ supports fetchPriority. If using older React, might need spread or ignore warning. 
+                                    However, simple attributes usually pass through. We'll use both style or valid prop if possible, 
+                                    but standard React `img` accepts known props. `fetchPriority` is correct for modern React types.) */}
+                                <img
+                                    src={optimizeImage("https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Hero%20Image%20Top1.png", 1200)}
+                                    alt="Industrial Visualization"
+                                    // @ts-ignore
+                                    fetchPriority="high"
+                                    width="1200"
+                                    height="1200"
+                                    style={{ width: '100%', height: 'auto' }}
+                                />
                             </div>
                         </div>
                     </div>
@@ -88,7 +109,15 @@ export default function Home() {
                                     </p>
                                 </div>
                                 <div className="platform-visual">
-                                    <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Category%20Variations%201.png" alt="Digital Pipeline" style={{ filter: 'grayscale(100%)', opacity: 0.8 }} />
+                                    {/* Lazy load and optimize */}
+                                    <img
+                                        src={optimizeImage("https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Category%20Variations%201.png", 800)}
+                                        alt="Digital Pipeline"
+                                        loading="lazy"
+                                        width="800"
+                                        height="600"
+                                        style={{ filter: 'grayscale(100%)', opacity: 0.8, width: '100%', height: 'auto' }}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -128,21 +157,42 @@ export default function Home() {
                         <div className="grid-3">
                             <div className="card">
                                 <div style={{ height: '200px', marginBottom: '1.5rem', overflow: 'hidden', borderRadius: '4px' }}>
-                                    <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Still%20Renders.png" alt="Still Render" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img
+                                        src={optimizeImage("https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Still%20Renders.png", 600)}
+                                        alt="Still Render"
+                                        loading="lazy"
+                                        width="600"
+                                        height="400"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                 </div>
                                 <h3>01 Still renders</h3>
                                 <p>Photoreal product visuals with clean isolation. 4K+ standard. Typical handover supports layered files, separate shadow, and editable screen areas.</p>
                             </div>
                             <div className="card">
                                 <div style={{ height: '200px', marginBottom: '1.5rem', overflow: 'hidden', borderRadius: '4px' }}>
-                                    <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/360%20Spins.png" alt="360 Spins" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img
+                                        src={optimizeImage("https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/360%20Spins.png", 600)}
+                                        alt="360 Spins"
+                                        loading="lazy"
+                                        width="600"
+                                        height="400"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                 </div>
                                 <h3>02 360 spins</h3>
                                 <p>Smooth rotation, stationary lighting, single axis motion. Delivered as web-ready video formats for e-commerce and sales tools.</p>
                             </div>
                             <div className="card">
                                 <div style={{ height: '200px', marginBottom: '1.5rem', overflow: 'hidden', borderRadius: '4px' }}>
-                                    <img src="https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Component%20Library.png" alt="Asset Library" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img
+                                        src={optimizeImage("https://xncoveowbfxpewldreyz.supabase.co/storage/v1/object/public/assets/marketing/Component%20Library.png", 600)}
+                                        alt="Asset Library"
+                                        loading="lazy"
+                                        width="600"
+                                        height="400"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                 </div>
                                 <h3>03 Asset library</h3>
                                 <p>A modular system of reusable components and materials that compounds value with every new SKU. Options available for source handover or fully managed maintenance.</p>

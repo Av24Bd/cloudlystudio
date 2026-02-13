@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, RefreshCw, Activity, MapPin, Building2, Globe, Clock, ArrowUpRight } from 'lucide-react';
+import { Loader2, RefreshCw, Activity, MapPin, Building2, Globe, Clock, ArrowUpRight, User, Edit3 } from 'lucide-react';
 
 interface Visitor {
     id: string;
@@ -25,8 +25,42 @@ const formatDate = (isoString: string) => {
 
 export default function AnalyticsDashboard() {
     const [visitors, setVisitors] = useState<Visitor[]>([]);
+    const [identities, setIdentities] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const fetchIdentities = async () => {
+        try {
+            const { data } = await supabase.from('known_identities').select('*');
+            if (data) {
+                const map = data.reduce((acc: any, curr: any) => ({ ...acc, [curr.ip_address]: curr.label }), {});
+                setIdentities(map);
+            }
+        } catch (err) {
+            console.error('Error loading identities:', err);
+        }
+    };
+
+    const handleIdentify = async (ip: string, currentLabel: string = '') => {
+        const label = window.prompt("Name this visitor (e.g., 'My Office', 'Client A'):", currentLabel);
+        if (label === null) return; // Cancelled
+
+        if (label.trim() === '') {
+            // If empty, maybe delete? For now just return.
+            return;
+        }
+
+        const { error } = await supabase
+            .from('known_identities')
+            .upsert({ ip_address: ip, label: label.trim() });
+
+        if (error) {
+            alert('Error saving label: ' + error.message);
+        } else {
+            setIdentities(prev => ({ ...prev, [ip]: label.trim() }));
+            fetchVisitors(); // Refresh to ensure consistency if needed, though local state update should be enough
+        }
+    };
 
     const fetchVisitors = async () => {
         setLoading(true);
@@ -50,6 +84,7 @@ export default function AnalyticsDashboard() {
 
     useEffect(() => {
         fetchVisitors();
+        fetchIdentities();
 
         // Subscribe to real-time changes
         const subscription = supabase
@@ -83,7 +118,7 @@ export default function AnalyticsDashboard() {
                     <span className="text-xs text-zinc-500 hidden md:block">Real-time visitor tracking enabled</span>
                 </div>
                 <button
-                    onClick={fetchVisitors}
+                    onClick={() => { fetchVisitors(); fetchIdentities(); }}
                     className="group flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg transition-all border border-white/5 hover:border-white/10 shadow-lg"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
@@ -117,7 +152,7 @@ export default function AnalyticsDashboard() {
                                 <tr>
                                     <th className="px-6 py-4">Time (UTC)</th>
                                     <th className="px-6 py-4">Location</th>
-                                    <th className="px-6 py-4">Organization / Network</th>
+                                    <th className="px-6 py-4">Identity / Network</th>
                                     <th className="px-6 py-4 text-right">Page View</th>
                                 </tr>
                             </thead>
@@ -163,19 +198,46 @@ export default function AnalyticsDashboard() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                {visitor.org !== 'unknown' && !visitor.org.includes('AS') ? (
-                                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 shadow-sm">
-                                                        <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-                                                        <span className="font-medium text-xs truncate max-w-[250px]">{visitor.org}</span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-2 text-zinc-400 bg-white/5 px-2 py-1 rounded w-fit">
-                                                        <Activity className="w-3.5 h-3.5" />
-                                                        <span className="text-xs truncate max-w-[250px] font-mono" title={visitor.org}>
-                                                            {visitor.org || 'ISP / Anonymous'}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    {identities[visitor.ip_address] ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 shadow-sm shadow-emerald-500/10">
+                                                                <User className="w-3.5 h-3.5" />
+                                                                <span className="font-bold text-xs truncate max-w-[200px]">{identities[visitor.ip_address]}</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleIdentify(visitor.ip_address, identities[visitor.ip_address])}
+                                                                className="p-1.5 text-zinc-600 hover:text-white hover:bg-white/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                                                title="Edit Label"
+                                                            >
+                                                                <Edit3 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 group/id">
+                                                            {visitor.org !== 'unknown' && !visitor.org.includes('AS') ? (
+                                                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 shadow-sm">
+                                                                    <Building2 className="w-3.5 h-3.5 text-indigo-400" />
+                                                                    <span className="font-medium text-xs truncate max-w-[250px]">{visitor.org}</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 text-zinc-400 bg-white/5 px-2 py-1 rounded w-fit">
+                                                                    <Activity className="w-3.5 h-3.5" />
+                                                                    <span className="text-xs truncate max-w-[250px] font-mono" title={visitor.org}>
+                                                                        {visitor.org || 'ISP / Anonymous'}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleIdentify(visitor.ip_address)}
+                                                                className="p-1.5 text-zinc-600 hover:text-white hover:bg-white/10 rounded transition-colors opacity-0 group-hover:opacity-100 "
+                                                                title="Tag this IP"
+                                                            >
+                                                                <Edit3 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <a href={visitor.path} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors text-xs bg-black/40 hover:bg-zinc-800 border border-white/5 hover:border-white/20 px-3 py-1.5 rounded-md font-mono">
@@ -208,7 +270,7 @@ export default function AnalyticsDashboard() {
                         <Building2 className="w-6 h-6" />
                     </div>
                     <h4 className="text-white font-medium mb-1">Company Identification</h4>
-                    <p className="text-sm text-zinc-500">Categorizing incoming busines traffic...</p>
+                    <p className="text-sm text-zinc-500">Categorizing incoming business traffic...</p>
                 </div>
 
                 {/* Insight Card 3 */}

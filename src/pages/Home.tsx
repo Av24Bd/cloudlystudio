@@ -55,6 +55,7 @@ export default function Home() {
                 <section className="deliver section-padding" id="work">
                     <div className="container">
                         <div className="grid-3">
+                            <h2 className="sr-only">Our Promise</h2>
                             <div className="card">
                                 <h3>Faster launches</h3>
                                 <p>Marketing assets delivered in parallel with engineering. First outputs in days once inputs are cleared, not weeks of sample logistics.</p>
@@ -264,7 +265,7 @@ export default function Home() {
                 <section className="proof-strip section-padding">
                     <div className="container">
                         <div className="proof-header">
-                            <span className="swiss-flag" aria-label="Swiss Flag"></span>
+                            <span className="swiss-flag" aria-label="Swiss Flag" role="img"></span>
                             <span className="proof-label">Quality approved by Swiss teams</span>
                         </div>
                         <blockquote>

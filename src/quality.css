@@ -44,14 +44,14 @@
     font-family: monospace;
     /* Technical feel */
     font-size: 1.25rem;
-    color: #999;
+    color: #555;
     font-weight: 600;
 }
 
 .gate-status {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #00A651;
+    color: #006d35;
     /* Success Green */
     background: #E8F5E9;
     padding: 4px 8px;

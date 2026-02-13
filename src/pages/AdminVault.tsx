@@ -13,13 +13,13 @@ import UTMBuilder from '../components/UTMBuilder';
 const SectionAccordion = ({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     return (
-        <div className="border border-white/10 rounded-lg overflow-hidden bg-white/5 mb-4">
+        <div className="border border-white/10 rounded-lg overflow-hidden bg-zinc-900 mb-4 shadow-sm transition-all hover:border-white/20">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors"
+                className="w-full flex items-center justify-between p-5 bg-zinc-900 hover:bg-zinc-800 transition-colors border-b border-white/5 group"
             >
-                <span className="font-medium text-lg text-white">{title}</span>
-                {isOpen ? <ChevronDown className="w-5 h-5 opacity-60" /> : <ChevronRight className="w-5 h-5 opacity-60" />}
+                <span className="font-semibold text-lg text-white group-hover:text-white tracking-tight">{title}</span>
+                {isOpen ? <ChevronDown className="w-5 h-5 text-zinc-400 group-hover:text-white" /> : <ChevronRight className="w-5 h-5 text-zinc-400 group-hover:text-white" />}
             </button>
             {isOpen && (
                 <div className="p-4 border-t border-white/10 space-y-6">
@@ -67,10 +67,10 @@ const ContentField = ({ label, contentKey, type = 'text', defaultValue = '', hel
     };
 
     return (
-        <div className="space-y-2">
-            <div className="flex justify-between">
-                <label className="text-sm text-gray-400 font-medium block">{label}</label>
-                {isUploading && <span className="text-xs text-blue-400 animate-pulse">Uploading...</span>}
+        <div className="space-y-2.5">
+            <div className="flex justify-between items-baseline">
+                <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider block ml-1">{label}</label>
+                {isUploading && <span className="text-xs text-emerald-400 animate-pulse font-medium">Uploading...</span>}
             </div>
 
             {type === 'textarea' ? (
@@ -78,7 +78,7 @@ const ContentField = ({ label, contentKey, type = 'text', defaultValue = '', hel
                     value={value}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full bg-zinc-900/50 border border-white/5 rounded-xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all resize-y placeholder:text-zinc-700 shadow-inner"
+                    className="w-full bg-black border border-white/15 rounded-lg p-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all resize-y placeholder:text-zinc-600 shadow-inner font-normal leading-relaxed"
                 />
             ) : type === 'image' ? (
                 <div className="space-y-3">
@@ -97,7 +97,7 @@ const ContentField = ({ label, contentKey, type = 'text', defaultValue = '', hel
                                     type="text"
                                     value={value}
                                     onChange={handleChange}
-                                    className="w-full bg-zinc-900/50 border border-white/5 rounded-xl p-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all text-xs font-mono text-zinc-400"
+                                    className="w-full bg-black border border-white/15 rounded-lg p-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all text-xs font-mono text-zinc-300 placeholder:text-zinc-700"
                                     placeholder="https://..."
                                 />
                                 <div className="absolute right-2 top-2">
@@ -119,10 +119,10 @@ const ContentField = ({ label, contentKey, type = 'text', defaultValue = '', hel
                     type="text"
                     value={value}
                     onChange={handleChange}
-                    className="w-full bg-zinc-900/50 border border-white/5 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all shadow-inner"
+                    className="w-full bg-black border border-white/15 rounded-lg p-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all shadow-inner placeholder:text-zinc-600 font-medium"
                 />
             )}
-            {helperText && <p className="text-xs text-zinc-500">{helperText}</p>}
+            {helperText && <p className="text-xs text-zinc-400 mt-1">{helperText}</p>}
         </div>
     );
 };
@@ -428,11 +428,11 @@ export default function AdminVault() {
     return (
         <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-white/20">
             {/* Top Bar */}
-            <div className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
+            <div className="sticky top-0 z-50 bg-black border-b border-white/10 shadow-xl">
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <span className="font-light text-xl tracking-tight">Cloudly<span className="font-semibold">Vault</span></span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider bg-white/10 text-zinc-300 border border-white/5">Beta v1.0</span>
+                        <span className="font-light text-xl tracking-tight text-white">Cloudly<span className="font-bold">Vault</span></span>
+                        <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider bg-white text-black font-bold">Beta v1.0</span>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -442,7 +442,7 @@ export default function AdminVault() {
                                 Unsaved Changes
                             </span>
                         ) : (
-                            <span className="flex items-center gap-2 text-xs font-medium text-zinc-500 px-3 py-1">
+                            <span className="flex items-center gap-2 text-xs font-medium text-zinc-400 px-3 py-1 bg-white/5 rounded-full border border-white/5">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 All saved
                             </span>
@@ -451,7 +451,7 @@ export default function AdminVault() {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={discardDraft}
-                                className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                                className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                             >
                                 Discard
                             </button>
@@ -466,7 +466,7 @@ export default function AdminVault() {
 
                         <div className="h-6 w-px bg-white/10" />
 
-                        <button onClick={signOut} className="text-zinc-500 hover:text-red-400 transition-colors p-2 hover:bg-white/5 rounded-lg">
+                        <button onClick={signOut} className="text-zinc-400 hover:text-red-400 transition-colors p-2 hover:bg-white/10 rounded-lg">
                             <LogOut className="w-4 h-4" />
                         </button>
                     </div>
@@ -477,39 +477,38 @@ export default function AdminVault() {
                 <div className="flex flex-col lg:flex-row gap-12">
                     {/* Sidebar Navigation */}
                     <aside className="w-full lg:w-72 shrink-0 space-y-6">
-                        <div className="p-6 rounded-2xl bg-zinc-900/30 border border-white/5 backdrop-blur-sm">
+                        <div className="p-6 rounded-xl bg-zinc-900 border border-white/10 shadow-xl">
                             <div className="flex items-center gap-4 mb-8">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 border border-white/10 shadow-lg flex items-center justify-center text-lg font-bold">
+                                <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center text-lg font-bold shadow-lg shadow-white/10">
                                     {user.email?.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="overflow-hidden">
-                                    <p className="text-sm font-medium text-white truncate">{user.email}</p>
-                                    <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">Admin Access</p>
+                                    <p className="text-sm font-bold text-white truncate">{user.email}</p>
+                                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest mt-1 font-bold">Admin Access</p>
                                 </div>
                             </div>
                             <nav className="space-y-2">
                                 <button
-                                    onClick={() => setActiveTab('editor')}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'editor' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'editor' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
                                 >
                                     <Type className="w-4 h-4" />
                                     Site Editor
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('analytics')}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'analytics' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'analytics' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
                                 >
                                     <BarChart2 className="w-4 h-4" />
                                     Traffic Intelligence
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('links')}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'links' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'links' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
                                 >
                                     <LinkIcon className="w-4 h-4" />
                                     Campaign Links
                                 </button>
-                                <Link to="/" className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white transition-all group">
+                                <Link to="/" className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all group">
                                     <Eye className="w-4 h-4 group-hover:text-white transition-colors" />
                                     View Live Site
                                 </Link>
@@ -520,9 +519,9 @@ export default function AdminVault() {
                             </nav>
                         </div>
 
-                        <div className="p-6 rounded-2xl bg-blue-900/10 border border-blue-500/10">
-                            <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Cloudly Tips</h4>
-                            <p className="text-xs text-blue-300/70 leading-relaxed">
+                        <div className="p-6 rounded-xl bg-zinc-900 border border-white/10">
+                            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cloudly Tips</h4>
+                            <p className="text-xs text-zinc-500 leading-relaxed font-medium">
                                 Need to update images? Drag and drop files directly onto any image field store them in Supabase.
                             </p>
                         </div>
@@ -530,13 +529,13 @@ export default function AdminVault() {
 
                     {/* Main Content Area */}
                     <main className="flex-1 min-w-0">
-                        <div className="mb-10 pb-6 border-b border-white/5">
-                            <h2 className="text-3xl font-light text-white mb-2">
+                        <div className="mb-10 pb-6 border-b border-white/10">
+                            <h2 className="text-3xl font-light text-white mb-2 tracking-tight">
                                 {activeTab === 'editor' && 'Site Configuration'}
                                 {activeTab === 'analytics' && 'Traffic Intelligence'}
                                 {activeTab === 'links' && 'Campaign Manager'}
                             </h2>
-                            <p className="text-zinc-500">
+                            <p className="text-zinc-400 text-lg font-light">
                                 {activeTab === 'editor' && 'Manage your landing page content and assets.'}
                                 {activeTab === 'analytics' && 'Live visitor tracking and company identification.'}
                                 {activeTab === 'links' && 'Create and track UTM links for your marketing campaigns.'}

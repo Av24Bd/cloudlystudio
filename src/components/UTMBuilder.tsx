@@ -125,52 +125,52 @@ export default function UTMBuilder() {
                         </div>
                         <div>
                             <h3 className="text-lg font-medium text-white">Campaign Link Builder</h3>
-                            <p className="text-sm text-zinc-500">Create trackable URLs for your marketing.</p>
+                            <p className="text-sm text-zinc-400">Create trackable URLs for your marketing.</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">Destination URL</label>
+                            <label className="block text-xs font-bold text-zinc-300 mb-2 uppercase tracking-wider">Destination URL</label>
                             <input
                                 type="text"
                                 value={baseUrl}
                                 onChange={(e) => setBaseUrl(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                                className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors placeholder:text-zinc-600"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">Source (e.g. linkedin)</label>
+                                <label className="block text-xs font-bold text-zinc-300 mb-2 uppercase tracking-wider">Source (e.g. linkedin)</label>
                                 <input
                                     type="text"
                                     value={source}
                                     onChange={(e) => setSource(e.target.value)}
                                     placeholder="linkedin"
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                                    className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors placeholder:text-zinc-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">Medium (e.g. post, email)</label>
+                                <label className="block text-xs font-bold text-zinc-300 mb-2 uppercase tracking-wider">Medium (e.g. post, email)</label>
                                 <input
                                     type="text"
                                     value={medium}
                                     onChange={(e) => setMedium(e.target.value)}
                                     placeholder="social-post"
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                                    className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors placeholder:text-zinc-600"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">Campaign Name</label>
+                            <label className="block text-xs font-bold text-zinc-300 mb-2 uppercase tracking-wider">Campaign Name</label>
                             <input
                                 type="text"
                                 value={campaign}
                                 onChange={(e) => setCampaign(e.target.value)}
                                 placeholder="launch-v2"
-                                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                                className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors placeholder:text-zinc-600"
                             />
                         </div>
 
@@ -230,10 +230,10 @@ export default function UTMBuilder() {
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
                                         <h4 className="text-white font-medium text-sm mb-0.5">{link.label}</h4>
-                                        <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-zinc-500 font-mono">
-                                            <span className="bg-white/5 px-1.5 py-0.5 rounded text-zinc-400">{link.utm_source}</span>
-                                            <span>/</span>
-                                            <span className="bg-white/5 px-1.5 py-0.5 rounded text-zinc-400">{link.utm_medium}</span>
+                                        <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-zinc-400 font-mono">
+                                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-zinc-300 border border-white/5">{link.utm_source}</span>
+                                            <span className="text-zinc-500">/</span>
+                                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-zinc-300 border border-white/5">{link.utm_medium}</span>
                                         </div>
                                     </div>
                                     <button

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, RefreshCw, Activity, MapPin, Building2, Globe, Clock, ArrowUpRight, User, Edit3, Filter, X, Link } from 'lucide-react';
+import { Loader2, RefreshCw, Activity, MapPin, Building2, Globe, Clock, ArrowUpRight, User, Edit3, Filter, X, Link, Search } from 'lucide-react';
 
 interface Visitor {
     id: string;
@@ -25,34 +25,49 @@ const formatDate = (isoString: string) => {
 };
 
 const getTrafficSource = (visitor: Visitor) => {
+    let keyphrase: string | null = null;
+    let sourceName = 'Direct / Bookmark';
+    let sourceType = 'direct';
+
     // 1. Check UTM params first (most specific)
     try {
-        if (visitor.path.includes('utm_source=')) {
-            const url = new URL('http://dummy.com' + visitor.path); // Hack to parse relative path
-            const source = url.searchParams.get('utm_source');
-            if (source) return { name: source, type: 'campaign' };
+        // visitor.path often contains the query string (e.g. /?utm_source=...)
+        // We use a dummy base to parse it safely
+        const url = new URL('http://dummy.com' + visitor.path);
+        const utmSource = url.searchParams.get('utm_source');
+        const utmTerm = url.searchParams.get('utm_term');
+
+        if (utmTerm) keyphrase = utmTerm;
+
+        if (utmSource) {
+            sourceName = utmSource;
+            sourceType = 'campaign';
+            return { name: sourceName, type: sourceType, keyphrase };
         }
     } catch (e) { /* ignore */ }
 
     // 2. Check Referrer
     if (!visitor.referrer || visitor.referrer === '' || visitor.referrer.includes(window.location.host)) {
-        return { name: 'Direct / Bookmark', type: 'direct' };
+        return { name: sourceName, type: sourceType, keyphrase };
     }
 
     try {
         const url = new URL(visitor.referrer);
         const domain = url.hostname.replace('www.', '');
+        const q = url.searchParams.get('q') || url.searchParams.get('query');
 
-        if (domain.includes('google')) return { name: 'Google Search', type: 'search' };
-        if (domain.includes('linkedin')) return { name: 'LinkedIn', type: 'social' };
-        if (domain.includes('twitter') || domain.includes('t.co') || domain.includes('x.com')) return { name: 'X / Twitter', type: 'social' };
-        if (domain.includes('facebook')) return { name: 'Facebook', type: 'social' };
-        if (domain.includes('instagram')) return { name: 'Instagram', type: 'social' };
-        if (domain.includes('bing')) return { name: 'Bing Search', type: 'search' };
+        if (q) keyphrase = q;
 
-        return { name: domain, type: 'referral' };
+        if (domain.includes('google')) return { name: 'Google Search', type: 'search', keyphrase };
+        if (domain.includes('linkedin')) return { name: 'LinkedIn', type: 'social', keyphrase };
+        if (domain.includes('twitter') || domain.includes('t.co') || domain.includes('x.com')) return { name: 'X / Twitter', type: 'social', keyphrase };
+        if (domain.includes('facebook')) return { name: 'Facebook', type: 'social', keyphrase };
+        if (domain.includes('instagram')) return { name: 'Instagram', type: 'social', keyphrase };
+        if (domain.includes('bing')) return { name: 'Bing Search', type: 'search', keyphrase };
+
+        return { name: domain, type: 'referral', keyphrase };
     } catch (e) {
-        return { name: 'Unknown', type: 'unknown' };
+        return { name: 'Unknown', type: 'unknown', keyphrase };
     }
 };
 
@@ -61,7 +76,7 @@ export default function AnalyticsDashboard() {
     const [identities, setIdentities] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeFilter, setActiveFilter] = useState<{ type: 'city' | 'org' | 'source', value: string } | null>(null);
+    const [activeFilter, setActiveFilter] = useState<{ type: 'city' | 'org' | 'source' | 'phrase', value: string } | null>(null);
 
     const fetchIdentities = async () => {
         try {
@@ -137,6 +152,7 @@ export default function AnalyticsDashboard() {
         const cityCounts: Record<string, number> = {};
         const orgCounts: Record<string, number> = {};
         const sourceCounts: Record<string, number> = {};
+        const phraseCounts: Record<string, number> = {};
 
         visitors.forEach(v => {
             // City
@@ -147,15 +163,20 @@ export default function AnalyticsDashboard() {
             const label = identities[v.ip_address] || (v.org === 'unknown' ? 'Anonymous / ISP' : v.org);
             orgCounts[label] = (orgCounts[label] || 0) + 1;
 
-            // Source
-            const source = getTrafficSource(v).name;
+            // Source & Keyphrase
+            const { name: source, keyphrase } = getTrafficSource(v);
             sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+
+            if (keyphrase) {
+                phraseCounts[keyphrase] = (phraseCounts[keyphrase] || 0) + 1;
+            }
         });
 
         return {
             topCities: Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
             topOrgs: Object.entries(orgCounts).sort((a, b) => b[1] - a[1]).slice(0, 7),
             topSources: Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
+            topPhrases: Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
         };
     }, [visitors, identities]);
 
@@ -168,6 +189,7 @@ export default function AnalyticsDashboard() {
                 return label === activeFilter.value;
             }
             if (activeFilter.type === 'source') return getTrafficSource(v).name === activeFilter.value;
+            if (activeFilter.type === 'phrase') return getTrafficSource(v).keyphrase === activeFilter.value;
             return true;
         });
     }, [visitors, activeFilter, identities]);
@@ -204,10 +226,10 @@ export default function AnalyticsDashboard() {
             )}
 
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
                 {/* Live Feed Panel */}
-                <div className="lg:col-span-3 bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="lg:col-span-4 bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                     <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                         <div className="flex items-center gap-4">
                             <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -324,11 +346,21 @@ export default function AnalyticsDashboard() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2 text-sm text-zinc-300">
-                                                        <Link className="w-3 h-3 text-zinc-400" />
-                                                        <span className={`truncate max-w-[150px] ${source.type === 'direct' ? 'text-zinc-400 italic' : 'text-zinc-200 font-medium'}`}>
-                                                            {source.name}
-                                                        </span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2 text-sm text-zinc-300">
+                                                            <Link className="w-3 h-3 text-zinc-400" />
+                                                            <span className={`truncate max-w-[150px] ${source.type === 'direct' ? 'text-zinc-400 italic' : 'text-zinc-200 font-medium'}`}>
+                                                                {source.name}
+                                                            </span>
+                                                        </div>
+                                                        {source.keyphrase && (
+                                                            <div className="flex items-center gap-1.5 ml-5">
+                                                                <Search className="w-3 h-3 text-amber-500" />
+                                                                <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wide bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                                                    {source.keyphrase}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -429,6 +461,35 @@ export default function AnalyticsDashboard() {
                             </div>
                         )) : (
                             <p className="text-sm text-zinc-600 p-4 text-center italic">Not enough data to cluster.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Insight Card: Top Keywords */}
+                <div className="bg-zinc-900 border border-white/10 rounded-xl p-6 shadow-lg flex flex-col h-full hover:border-white/20 transition-colors">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-white/10 shadow-sm">
+                            <Search className="w-5 h-5 text-amber-500" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-medium">Top Keywords</h4>
+                            <p className="text-xs text-zinc-400">Search phrases & terms</p>
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        {stats.topPhrases.length > 0 ? stats.topPhrases.map(([phrase, count]) => (
+                            <div
+                                key={phrase}
+                                onClick={() => setActiveFilter({ type: 'phrase', value: phrase })}
+                                className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer group transition-colors"
+                            >
+                                <span className="text-sm font-mono text-zinc-200 group-hover:text-white truncate max-w-[200px] font-medium capitalize">{phrase}</span>
+                                <span className="text-xs font-mono font-bold text-white bg-zinc-800 px-2 py-0.5 rounded border border-white/10">
+                                    {count}
+                                </span>
+                            </div>
+                        )) : (
+                            <p className="text-sm text-zinc-600 p-4 text-center italic">No search terms detected.</p>
                         )}
                     </div>
                 </div>

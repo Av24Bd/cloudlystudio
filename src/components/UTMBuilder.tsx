@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Copy, Link as LinkIcon, ExternalLink, ArrowRight, Save, Trash2, Check, RefreshCw } from 'lucide-react';
+import { Copy, Link as LinkIcon, Save, Trash2, Check, RefreshCw } from 'lucide-react';
 
 interface SavedLink {
     id: string;

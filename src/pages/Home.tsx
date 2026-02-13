@@ -1,9 +1,15 @@
 import { trackEvent } from '../lib/analytics';
 // import { useContent } from '../contexts/ContentContext';
 
-const optimizeImage = (url: string, _width: number = 800) => {
-    // Reverting optimizations as the render/image endpoint appears to be disabled/broken on this project
-    return url;
+const optimizeImage = (url: string, width: number = 800) => {
+    // Use wsrv.nl as a free, reliable image optimization proxy (CORS enabled, no signup)
+    // This allows us to resize, compress, and serve WebP images without backend changes
+    if (!url || !url.startsWith('http')) return url;
+
+    // Encode the original URL
+    const encodedUrl = encodeURIComponent(url);
+    // wsrv.nl parameters: w=width, q=quality, output=webp
+    return `https://wsrv.nl/?url=${encodedUrl}&w=${width}&q=80&output=webp`;
 };
 
 export default function Home() {

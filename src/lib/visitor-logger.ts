@@ -33,7 +33,7 @@ export const logVisit = async () => {
             region: ipInfo.region,
             country: ipInfo.country,
             org: ipInfo.org,
-            path: window.location.pathname,
+            path: window.location.pathname + window.location.search,
             referrer: document.referrer,
             user_agent: navigator.userAgent,
         });
